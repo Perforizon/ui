@@ -78,7 +78,7 @@ export const HorizontalAhabStyle = () =>{
     },
     highlight : {
       backgroundColor: "rgba(200,200,200,1)"
-  }
+    }
   }
   const [input, setInput] = useState(1);
   return (
@@ -152,10 +152,10 @@ export const HorizontalOpacityStyle = () =>{
   }
   const fillVariants = {
     default : {
-      backgroundColor: "rgba(200,200,200,.1)"
+      backgroundColor: "rgba(200,200,200,0)"
     },
     highlight : {
-      backgroundColor: "rgba(255,255,255,.5)"
+      backgroundColor: "rgba(255,255,255,0)"
     }
   }
   const [input, setInput] = useState(1);

@@ -1,4 +1,4 @@
-import React, {useRef} from "react";
+import React from "react";
 import {motion, Variants, PanInfo, HTMLMotionProps, useDragControls, useMotionValue, useTransform, MotionStyle} from "framer-motion";
 import "../../../styles/no-select.scss";
 
@@ -173,6 +173,10 @@ export const HorizontalSlider = (props : SliderProps) =>
                      */
                     dragDirectionLock
                     drag={"x"}
+                    /**
+                     * use drag constraints left/right/top/bottom instead of ref drag constraint
+                     * because React.Ref drag constraint currently causes glitches with dragging
+                     */
                     dragConstraints={{left:0, right:props.barWidth}}
                     dragElastic={false}
                     dragMomentum={false}
