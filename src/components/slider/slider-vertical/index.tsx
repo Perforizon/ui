@@ -2,8 +2,11 @@ import React, { useRef } from "react";
 import CSS from "csstype";
 import {motion, Variants, PanInfo, HTMLMotionProps, useDragControls, useMotionValue, useTransform, MotionStyle} from "framer-motion";
 import "../../../styles/no-select.scss";
+import OuterCursor from "../../../images/slider/outerCursor.svg"
 
 interface SliderProps  extends HTMLMotionProps<"div">{
+    outerCursorSVGUrl ?: string,
+
     fillVariants ?: Variants,
     barVariants ?: Variants,
     innerCursorVariants ?: Variants,
@@ -21,7 +24,6 @@ interface SliderProps  extends HTMLMotionProps<"div">{
     outerCursorHeight ?: number,
     outerCursorOffset?:number,
     outerCursorSVG?: React.StatelessComponent<React.SVGAttributes<SVGElement>>
-
     setInput : React.Dispatch<React.SetStateAction<number>>,
     /**
      * Set to `true` if position and size of the element will never change.
@@ -42,7 +44,7 @@ export const HorizontalSlider = (props : SliderProps) =>
     const dragControls = useDragControls();
     const dragX = useMotionValue(null);
     const dragXCursor1Transform = useTransform(dragX, (x)=> x);
-    const fillScaleXTransform = useTransform(dragX, (x) => x/props.barWidth);
+    const fillScaleXTransform = useTransform(dragX, (x) => (1-x/props.barHeight));
     /*
      * ================================================================
      *  css styles
@@ -100,35 +102,35 @@ export const HorizontalSlider = (props : SliderProps) =>
          * the slider)
          */
         position: "relative",
-        top: -props.barHeight,
-        left: -props.innerCursorWidth/2,
-        x: dragX,
-        width:props.innerCursorWidth,
-        height: props.barHeight,
-        originX: .5
+        top: -props.barHeight-props.innerCursorWidth/2,
+        y: dragX,
+        width: props.barWidth,
+        height:props.innerCursorWidth,
+        originY: .5
     }
     const strokeWidth = props.outerCursorStyle?(props.outerCursorStyle.strokeWidth? props.outerCursorStyle.strokeWidth as number: 0):0;
     const outerCursorOffset = props.outerCursorOffset?props.outerCursorOffset:0;
+    const outerCursorHeight = props.outerCursorHeight?props.outerCursorHeight:0;
     const outerCursorOverrideStyle : MotionStyle = {
         position:"absolute",
-        left:-props.outerCursorWidth/2,
-        top: props.barHeight+strokeWidth+outerCursorOffset,
+        top: -outerCursorHeight/2,
+        left: strokeWidth+outerCursorOffset-props.outerCursorWidth/2+props.barWidth, //strokeWidth+outerCursorOffset, //-props.outerCursorWidth/2,
         width: props.outerCursorWidth,
-        x:dragXCursor1Transform,
+        y:dragXCursor1Transform,
+        rotateZ:-90,
         /* set `verticalAlign: "top"` to prevent the outer cursor
          * <img/> component from drifting away from the top of its
          *  border at sizes below 15px.
          */
-        verticalAlign: "top",
         height: props.outerCursorHeight,
         originX: .5,
         originY: 0
     }
     const fillOverrideStyle : MotionStyle = {
-        originX: 0,
+        originY: 1,
         width: "100%",
         height: "100%",
-        scaleX: fillScaleXTransform
+        scaleY: fillScaleXTransform
     }
 
     function startDrag(event) {
@@ -182,39 +184,27 @@ export const HorizontalSlider = (props : SliderProps) =>
                 <motion.div
                     id={"slider-inner-cursor"}
                     style={{...innerCursorDefaultStyle, ...props.innerCursorStyle, ...innerCursorOverrideStyle}}
-                    initial={{x:props.barWidth}}
+                    initial={{y:0}}
                     /**
                      * dragDirectionLock combined with a specific drag direction i.e. `drag={"x"}` or `drag={"y"}` 
                      * prevents some framer-motion drag glitches
                      */
                     dragDirectionLock
-                    drag={"x"}
+                    drag={"y"}
                     /**
                      * use drag constraints left/right/top/bottom instead of ref drag constraint
                      * because React.Ref drag constraint currently causes glitches with dragging
                      */
-                    dragConstraints={{left:0, right:props.barWidth}}
+                    dragConstraints={{top:0, bottom:props.barHeight}}
                     dragElastic={false}
                     dragMomentum={false}
                     dragControls={dragControls}
                     dragPropagation={false}
-                    onDrag={(event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo)=>{props.setInput(info.point.x/(props.barWidth))}}
+                    onDrag={(event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo)=>{props.setInput(1-info.point.y/(props.barHeight))}}
                     variants={props.innerCursorVariants}
                 >
                 </motion.div>
             </motion.div>
-            {/* <motion.img
-                id={"slider-outer-cursor"}
-                src={props.outerCursorSVGUrl}
-                style={{...outerCursorDefaultStyle, ...props.outerCursorStyle, ...outerCursorOverrideStyle}}
-                variants={props.outerCursorVariants}
-                width={props.outerCursorWidth}
-                onMouseDown={(e : React.MouseEvent<HTMLImageElement, MouseEvent>)=>{
-                    startDrag(e);
-                    e.preventDefault()
-                }}
-            >
-            </motion.img> */}
             <motion.div 
                 id={"slider-outer-cursor"} 
                 variants={props.outerCursorVariants}

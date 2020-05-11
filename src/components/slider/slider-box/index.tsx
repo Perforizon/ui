@@ -2,8 +2,11 @@ import React, { useRef } from "react";
 import CSS from "csstype";
 import {motion, Variants, PanInfo, HTMLMotionProps, useDragControls, useMotionValue, useTransform, MotionStyle} from "framer-motion";
 import "../../../styles/no-select.scss";
+import OuterCursor from "../../../images/slider/outerCursor.svg"
 
 interface SliderProps  extends HTMLMotionProps<"div">{
+    outerCursorSVGUrl ?: string,
+
     fillVariants ?: Variants,
     barVariants ?: Variants,
     innerCursorVariants ?: Variants,
@@ -20,8 +23,6 @@ interface SliderProps  extends HTMLMotionProps<"div">{
     outerCursorWidth ?: number,
     outerCursorHeight ?: number,
     outerCursorOffset?:number,
-    outerCursorSVG?: React.StatelessComponent<React.SVGAttributes<SVGElement>>
-
     setInput : React.Dispatch<React.SetStateAction<number>>,
     /**
      * Set to `true` if position and size of the element will never change.
@@ -139,13 +140,6 @@ export const HorizontalSlider = (props : SliderProps) =>
      * components
      * ================================================================                                                              
      */
-    const OuterCursorSVG = () => {
-        if (props.outerCursorSVG)
-            return <props.outerCursorSVG id="outer-cursor-svg" width={props.outerCursorWidth} style={{overflow:"visible"}}/>
-        else
-            return <div id="outer-cursor-svg:null"></div>
-    }
-    
     return (
         <motion.div
             id={"slider-wrapper"}
@@ -221,7 +215,7 @@ export const HorizontalSlider = (props : SliderProps) =>
                 style={{...outerCursorDefaultStyle, ...props.outerCursorStyle, ...outerCursorOverrideStyle}}
                 ref={outerCursorRef}
             >
-                <OuterCursorSVG/>
+                <OuterCursor width={props.outerCursorWidth} style={{overflow:"visible"}}/>
             </motion.div>
         </motion.div>
     );

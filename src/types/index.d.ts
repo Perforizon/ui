@@ -1,4 +1,4 @@
 declare module "*.svg" {
-    const content: string;
-    export default content;
+    const value: React.StatelessComponent<React.SVGAttributes<SVGElement>>;
+    export default value;
   }

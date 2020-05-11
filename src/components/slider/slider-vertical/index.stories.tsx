@@ -1,29 +1,22 @@
 import React, {useState} from "react";
 import {HorizontalSlider} from '.';
-import OuterCursorSVG from "../../../images/slider/outerCursor.svg"
-import {OpacityCanvas} from "@perforizon/colorpicker";
+import OuterCursorSVG from "../../../images/slider/outerCursor.svg";
+import {HueCanvas} from "@perforizon/colorpicker";
 import "../../../styles/no-select.scss";
 
 export default {
-  title: "Slider-Horizontal"
+  title: "Slider-Vertical"
 };
 
-export const Horizontal = () =>{ 
-  const outerCursorVariants = {
-    default : {
-        scale : 1/10
-    },
-    highlight : {
-        scale: 2/10
-    }
-}
+export const Vertical = () =>{ 
+
   const [input, setInput] = useState(1);
   return (
     <div>
       <HorizontalSlider 
         setInput={setInput} 
-        barHeight={20}
-        barWidth={200}
+        barHeight={200}
+        barWidth={20}
         innerCursorWidth={8} 
         outerCursorWidth={15} 
         outerCursorSVG={OuterCursorSVG}
@@ -42,11 +35,11 @@ export const AHAB = () =>{
   const innerCursorVariants = {
     default : {
         boxShadow:"0px 0px 25px 5px rgba(255,255,255,0)",
-        scaleX: 1
+        scaleY: 1
     },
     highlight : {
         boxShadow:"0px 0px 25px 2px rgba(255,255,255,1)",
-        scaleX: 2,
+        scaleY: 2,
         backgroundColor: "rgba(255,255,255,1)",
         transition: {
           type: "tween",
@@ -84,19 +77,19 @@ export const AHAB = () =>{
     <div>
       <HorizontalSlider 
         setInput={setInput} 
-        barHeight={30}
-        barWidth={280}
+        barHeight={280}
+        barWidth={30}
+        innerCursorWidth={5} 
+        outerCursorWidth={15}
+        outerCursorOffset={sliderBorderSize}
         fillVariants={fillVariants}
+        outerCursorVariants={outerCursorVariants}
+        innerCursorVariants={innerCursorVariants}
         barStyle={{
           background: "linear-gradient(97.64deg, #020305 0.45%, #0B0D0F 100%)",
           boxShadow:`0px 0px 0px ${sliderBorderSize}px rgba(154,154,155,1)`
         }}
-        innerCursorWidth={5} 
-        innerCursorVariants={innerCursorVariants}
         innerCursorStyle={{backgroundColor: "rgba(240,240,240,1"}}
-        outerCursorVariants={outerCursorVariants}
-        outerCursorWidth={15}
-        outerCursorOffset={sliderBorderSize}
         outerCursorSVG={OuterCursorSVG}
         outerCursorStyle={{backgroundColor: "rgba(0,0,0,0)", stroke:"rgb(154,154,155)", strokeWidth: 1}}
         whileHover={"highlight"}
@@ -112,16 +105,16 @@ export const AHAB = () =>{
   )
 };
 
-export const Opacity = () =>{ 
+export const Hue = () =>{ 
   const [input, setInput] = useState(1);
 
-  const width = 280;
-  const height = 30;
+  const width = 30;
+  const height = 280;
   const borderWidth = 2;
   const innerCursorVariants = {
     default : {
         boxShadow:"0px 0px 25px 2px rgba(255,255,255,.5)",
-        scaleX: 1,
+        scaleY: 1,
         transition: {
           type: "tween",
           duration: .1
@@ -129,7 +122,7 @@ export const Opacity = () =>{
     },
     highlight : {
         boxShadow:"0px 0px 25px 2px rgba(255,255,255,1)",
-        scaleX: 2,
+        scaleY: 2,
         backgroundColor: "rgba(255,255,255,1)",
         transition: {
           type: "tween",
@@ -181,7 +174,6 @@ export const Opacity = () =>{
         outerCursorStyle={{
           backgroundColor: "rgba(0,0,0,0)",
           fill:"red",
-          top:155,
           stroke:"rgb(154,154,155)",
           strokeWidth:1,
         }}
@@ -190,13 +182,9 @@ export const Opacity = () =>{
         whileTap={"highlight"}
         initial={"default"}
       >
-        <OpacityCanvas 
+        <HueCanvas 
           width={width} 
           height={height} 
-          color={[1,0,0,1]}
-          patternColor0={[.7,.7,.7,.7]}
-          patternColor1={[.4,.4,.4,.7]}
-          patternSize={16}
         />
       </HorizontalSlider>
       <br/>

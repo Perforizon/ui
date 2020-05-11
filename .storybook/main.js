@@ -9,7 +9,7 @@ module.exports = {
     fileLoaderRule.exclude = /\.svg$/;
     config.module.rules.push({
       test: /\.svg$/,
-      use: ["url-loader"],
+      use: ["@svgr/webpack"],
     });
     config.module.rules.push({
       test: /\.scss$/,
