@@ -1,6 +1,6 @@
 import React, {useState} from "react";
-import {HorizontalSlider} from '.';
-import OuterCursorSVG from "../../../images/slider/outerCursor.svg";
+import {VerticalSlider} from '.';
+import OuterCursorSVG from "../../../images/slider/outer-cursor.svg";
 import {HueCanvas} from "@perforizon/colorpicker";
 import "../../../styles/no-select.scss";
 
@@ -13,7 +13,7 @@ export const Vertical = () =>{
   const [input, setInput] = useState(1);
   return (
     <div>
-      <HorizontalSlider 
+      <VerticalSlider 
         setInput={setInput} 
         barHeight={200}
         barWidth={20}
@@ -34,11 +34,11 @@ export const Vertical = () =>{
 export const AHAB = () =>{ 
   const innerCursorVariants = {
     default : {
-        boxShadow:"0px 0px 25px 5px rgba(255,255,255,0)",
+        boxShadow:"0px 0px 30px 5px rgba(255,255,255,1)",
         scaleY: 1
     },
     highlight : {
-        boxShadow:"0px 0px 25px 2px rgba(255,255,255,1)",
+        boxShadow:"0px 0px 30px 5px rgba(255,255,255,1)",
         scaleY: 2,
         backgroundColor: "rgba(255,255,255,1)",
         transition: {
@@ -75,7 +75,7 @@ export const AHAB = () =>{
   const sliderBorderSize = 2;
   return (
     <div>
-      <HorizontalSlider 
+      <VerticalSlider 
         setInput={setInput} 
         barHeight={280}
         barWidth={30}
@@ -89,7 +89,7 @@ export const AHAB = () =>{
           background: "linear-gradient(97.64deg, #020305 0.45%, #0B0D0F 100%)",
           boxShadow:`0px 0px 0px ${sliderBorderSize}px rgba(154,154,155,1)`
         }}
-        innerCursorStyle={{backgroundColor: "rgba(240,240,240,1"}}
+        innerCursorStyle={{backgroundColor: "rgba(240,240,240,1", boxShadow:"0px 0px 60px 5px rgba(255,255,255,0)"}}
         outerCursorSVG={OuterCursorSVG}
         outerCursorStyle={{backgroundColor: "rgba(0,0,0,0)", stroke:"rgb(154,154,155)", strokeWidth: 1}}
         whileHover={"highlight"}
@@ -121,7 +121,7 @@ export const Hue = () =>{
         }
     },
     highlight : {
-        boxShadow:"0px 0px 25px 2px rgba(255,255,255,1)",
+        boxShadow:"0px 0px 4px 2px rgba(255,255,255,1)",
         scaleY: 2,
         backgroundColor: "rgba(255,255,255,1)",
         transition: {
@@ -156,7 +156,7 @@ export const Hue = () =>{
   }
   return (
     <div>
-      <HorizontalSlider 
+      <VerticalSlider 
         setInput={setInput} 
         barHeight={height}
         barWidth={width}
@@ -169,7 +169,7 @@ export const Hue = () =>{
           background: "rgba(0,0,0,0)",
           boxShadow:`0px 0px 0px ${borderWidth}px rgba(154,154,155,1)`
         }}
-        innerCursorStyle={{backgroundColor: "rgba(240,240,240,1"}}
+        innerCursorStyle={{backgroundColor: "rgba(240,240,240,1", boxShadow:"0px 0px 4px 2px rgba(255,255,255,0)"}}
         outerCursorSVG={OuterCursorSVG}
         outerCursorStyle={{
           backgroundColor: "rgba(0,0,0,0)",
@@ -186,7 +186,7 @@ export const Hue = () =>{
           width={width} 
           height={height} 
         />
-      </HorizontalSlider>
+      </VerticalSlider>
       <br/>
       <br/>
       <text className={"no-select"}>

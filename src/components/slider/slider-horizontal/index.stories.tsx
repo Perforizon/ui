@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {HorizontalSlider} from '.';
-import OuterCursorSVG from "../../../images/slider/outerCursor.svg"
+import OuterCursorSVG from "../../../images/slider/outer-cursor.svg"
 import {OpacityCanvas} from "@perforizon/colorpicker";
 import "../../../styles/no-select.scss";
 
@@ -45,7 +45,7 @@ export const AHAB = () =>{
         scaleX: 1
     },
     highlight : {
-        boxShadow:"0px 0px 25px 2px rgba(255,255,255,1)",
+        boxShadow:"0px 0px 30px 5px rgba(255,255,255,1)",
         scaleX: 2,
         backgroundColor: "rgba(255,255,255,1)",
         transition: {
@@ -93,7 +93,7 @@ export const AHAB = () =>{
         }}
         innerCursorWidth={5} 
         innerCursorVariants={innerCursorVariants}
-        innerCursorStyle={{backgroundColor: "rgba(240,240,240,1"}}
+        innerCursorStyle={{backgroundColor: "rgba(240,240,240,1", boxShadow:"0px 0px 60px 5px rgba(255,255,255,0)"}}
         outerCursorVariants={outerCursorVariants}
         outerCursorWidth={15}
         outerCursorOffset={sliderBorderSize}
@@ -120,7 +120,7 @@ export const Opacity = () =>{
   const borderWidth = 2;
   const innerCursorVariants = {
     default : {
-        boxShadow:"0px 0px 25px 2px rgba(255,255,255,.5)",
+        boxShadow:"0px 0px 0px 1px rgba(255,255,255,.5)",
         scaleX: 1,
         transition: {
           type: "tween",
@@ -128,7 +128,7 @@ export const Opacity = () =>{
         }
     },
     highlight : {
-        boxShadow:"0px 0px 25px 2px rgba(255,255,255,1)",
+        boxShadow:"0px 0px 2px 2px rgba(200,200,200,1)",
         scaleX: 2,
         backgroundColor: "rgba(255,255,255,1)",
         transition: {

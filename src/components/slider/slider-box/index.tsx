@@ -1,29 +1,37 @@
-import React, { useRef } from "react";
+import React, { useRef, forwardRef } from "react";
 import CSS from "csstype";
 import {motion, Variants, PanInfo, HTMLMotionProps, useDragControls, useMotionValue, useTransform, MotionStyle} from "framer-motion";
 import "../../../styles/no-select.scss";
-import OuterCursor from "../../../images/slider/outerCursor.svg"
 
-interface SliderProps  extends HTMLMotionProps<"div">{
-    outerCursorSVGUrl ?: string,
-
+export interface BoxSliderProps  extends HTMLMotionProps<"div">{
     fillVariants ?: Variants,
     barVariants ?: Variants,
     innerCursorVariants ?: Variants,
-    outerCursorVariants ?: Variants
+    innerLineXVariants ?: Variants,
+    innerLineYVariants ?: Variants,
+    outerCursorXVariants ?: Variants
+    outerCursorYVariants ?: Variants,
 
     fillStyle ?: MotionStyle,
     barStyle ?: MotionStyle,
     innerCursorStyle ?: MotionStyle,
-    outerCursorStyle ?: MotionStyle,
+    innerLineXStyle ?: MotionStyle,
+    innerLineYStyle ?: MotionStyle,
+    outerCursorXStyle ?: MotionStyle,
+    outerCursorYStyle ?: MotionStyle,
     
     barWidth : number,
     barHeight: number,
     innerCursorWidth : number,
+    innerCursorHeight : number,
     outerCursorWidth ?: number,
     outerCursorHeight ?: number,
     outerCursorOffset?:number,
-    setInput : React.Dispatch<React.SetStateAction<number>>,
+    innerCursorSVG?: React.StatelessComponent<React.SVGAttributes<SVGElement>>
+    outerCursorSVG?: React.StatelessComponent<React.SVGAttributes<SVGElement>>
+
+    setInputX : React.Dispatch<React.SetStateAction<number>>,
+    setInputY : React.Dispatch<React.SetStateAction<number>>,
     /**
      * Set to `true` if position and size of the element will never change.
      * This will not use the slider's `React.Ref` as a drag constraint and 
@@ -32,18 +40,19 @@ interface SliderProps  extends HTMLMotionProps<"div">{
      */
 }
 
-export const HorizontalSlider = (props : SliderProps) =>
+export const BoxSlider = forwardRef((props : BoxSliderProps, ref : React.Ref<HTMLDivElement>) =>
 { 
     /*
      * ================================================================
      *  states
      * ================================================================                                                              
      */
-    const outerCursorRef : React.Ref<HTMLDivElement> = useRef(null);
     const dragControls = useDragControls();
     const dragX = useMotionValue(null);
-    const dragXCursor1Transform = useTransform(dragX, (x)=> x);
-    const fillScaleXTransform = useTransform(dragX, (x) => x/props.barWidth);
+    const dragY = useMotionValue(null);
+    const dragXOuterCursorTransform = useTransform(dragX, (x)=> x);
+    const dragYOuterCursorTransform = useTransform(dragY, (x)=> x);
+    const innerLineXTransform = useTransform(dragX, (x) => x/props.barWidth);
     /*
      * ================================================================
      *  css styles
@@ -60,13 +69,28 @@ export const HorizontalSlider = (props : SliderProps) =>
         height: 10,
         backgroundColor:"BurlyWood"
     };
-    const outerCursorDefaultStyle : MotionStyle = {
+    const outerCursorXDefaultStyle : MotionStyle = {
         backgroundColor:"black",
         fill: "BlanchedAlmond",
         stroke : "brown",
         strokeWidth: 0
     };
-
+    const outerCursorYDefaultStyle : MotionStyle = {
+        backgroundColor:"black",
+        fill: "BlanchedAlmond",
+        stroke : "brown",
+        strokeWidth: 0
+    };
+    const innerLineXDefaultStyle : MotionStyle = {
+        stroke: "brown",
+        strokeDasharray: 1,
+        strokeWidth: 1
+    }
+    const innerLineYDefaultStyle : MotionStyle = {
+        stroke: "brown",
+        strokeDasharray: 1,
+        strokeWidth: 1  
+    }
     const innerCursorDefaultStyle : MotionStyle = {
         backgroundColor:"cornsilk",
         width: 15,
@@ -92,6 +116,14 @@ export const HorizontalSlider = (props : SliderProps) =>
         width:props.barWidth,
         overflow:"hidden"
     }
+    const innerLineXOverrideStyle : MotionStyle = {
+        originX: .5,
+        originY: .5
+    }
+    const innerLineYOverrideStyle : MotionStyle = {
+        originX: .5,
+        originY: .5
+    }
     const innerCursorOverrideStyle : MotionStyle = {
         /* set `position: "relative"` and `top: -props.barHeight`
          * to initialize the inner cursor in the correct position.
@@ -100,22 +132,26 @@ export const HorizontalSlider = (props : SliderProps) =>
          * cursor being in the wrong position until the user drags
          * the slider)
          */
-        position: "relative",
-        top: -props.barHeight,
+        position: "absolute",
         left: -props.innerCursorWidth/2,
+        top: -props.innerCursorWidth/2,
         x: dragX,
-        width:props.innerCursorWidth,
-        height: props.barHeight,
-        originX: .5
+        y: dragY,
+        width: props.innerCursorWidth,
+        height: props.innerCursorHeight,
+        originX: .5,
+        originY: .5
     }
-    const strokeWidth = props.outerCursorStyle?(props.outerCursorStyle.strokeWidth? props.outerCursorStyle.strokeWidth as number: 0):0;
+    
+    const strokeWidth = props.outerCursorXStyle?(props.outerCursorXStyle.strokeWidth? props.outerCursorXStyle.strokeWidth as number: 0):0;
     const outerCursorOffset = props.outerCursorOffset?props.outerCursorOffset:0;
-    const outerCursorOverrideStyle : MotionStyle = {
+    const outerCursorHeight = props.outerCursorHeight?props.outerCursorHeight:0;
+    const outerCursorXOverrideStyle : MotionStyle = {
         position:"absolute",
         left:-props.outerCursorWidth/2,
         top: props.barHeight+strokeWidth+outerCursorOffset,
         width: props.outerCursorWidth,
-        x:dragXCursor1Transform,
+        x:dragXOuterCursorTransform,
         /* set `verticalAlign: "top"` to prevent the outer cursor
          * <img/> component from drifting away from the top of its
          *  border at sizes below 15px.
@@ -125,11 +161,20 @@ export const HorizontalSlider = (props : SliderProps) =>
         originX: .5,
         originY: 0
     }
-    const fillOverrideStyle : MotionStyle = {
-        originX: 0,
-        width: "100%",
-        height: "100%",
-        scaleX: fillScaleXTransform
+    const outerCursorYOverrideStyle : MotionStyle = {
+        position:"absolute",
+        top: -outerCursorHeight/2,
+        left: strokeWidth+outerCursorOffset-props.outerCursorWidth/2+props.barWidth, //strokeWidth+outerCursorOffset, //-props.outerCursorWidth/2,
+        width: props.outerCursorWidth,
+        y:dragYOuterCursorTransform,
+        rotateZ:-90,
+        /* set `verticalAlign: "top"` to prevent the outer cursor
+         * <img/> component from drifting away from the top of its
+         *  border at sizes below 15px.
+         */
+        height: props.outerCursorHeight,
+        originX: .5,
+        originY: 0
     }
 
     function startDrag(event) {
@@ -140,9 +185,24 @@ export const HorizontalSlider = (props : SliderProps) =>
      * components
      * ================================================================                                                              
      */
+    const OuterCursorSVG = () => {
+        if (props.outerCursorSVG)
+            return <props.outerCursorSVG id="slider-outer-cursor-svg" width={props.outerCursorWidth} style={{overflow:"visible"}}/>
+        else
+            return <div id="slider-outer-cursor-svg:null"></div>
+    }
+    const InnerCursorSVG = () => {
+        if (props.innerCursorSVG)
+            return <props.innerCursorSVG id="slider-outer-cursor-svg" width={props.innerCursorWidth} style={{overflow:"visible", position:"absolute", top:0}}/>
+        else
+            return <div id="slider-outer-cursor-svg:null"></div>
+    }
+
+
     return (
         <motion.div
             id={"slider-wrapper"}
+            ref={ref}
             {...props}
             style={{...wrapperDefaultStyle, ...props.style, ...wrapperStyle}}
             /** 
@@ -168,55 +228,63 @@ export const HorizontalSlider = (props : SliderProps) =>
                   * slider-fill and slider-inner-cursor are both children of slider-bar to take advantage of
                   * slider-bar's `overflow: hidden` css property
                   */}
-                <motion.div 
-                    id={"slider-fill"} 
-                    style={{...fillDefaultStyle, ...props.fillStyle, ...fillOverrideStyle}}
-                    variants={props.fillVariants}
-                />
+                 <svg  id={"slider-inner-lines"} height={props.barHeight} width={props.barWidth}>
+                    <motion.line 
+                        id={"slider-inner-line-x"} 
+                        x1={dragXOuterCursorTransform} 
+                        y1={0} 
+                        x2={dragXOuterCursorTransform} 
+                        y2={props.barHeight} 
+                        style={{...innerLineXDefaultStyle, ...props.innerLineXStyle, ...innerLineXOverrideStyle}} 
+                        variants={props.innerLineXVariants}
+                    />
+                    <motion.line 
+                        id={"slider-inner-line-y"} 
+                        x1={0} 
+                        y1={dragYOuterCursorTransform} 
+                        x2={props.barWidth} 
+                        y2={dragYOuterCursorTransform} 
+                        style={{...innerLineYDefaultStyle, ...props.innerLineYStyle, ...innerLineYOverrideStyle}} 
+                        variants={props.innerLineYVariants}
+                    />
+                </svg> 
                 <motion.div
                     id={"slider-inner-cursor"}
                     style={{...innerCursorDefaultStyle, ...props.innerCursorStyle, ...innerCursorOverrideStyle}}
-                    initial={{x:props.barWidth}}
-                    /**
-                     * dragDirectionLock combined with a specific drag direction i.e. `drag={"x"}` or `drag={"y"}` 
-                     * prevents some framer-motion drag glitches
-                     */
-                    dragDirectionLock
-                    drag={"x"}
+                    initial={{x:props.barWidth, y:0}}
+                    drag
                     /**
                      * use drag constraints left/right/top/bottom instead of ref drag constraint
                      * because React.Ref drag constraint currently causes glitches with dragging
                      */
-                    dragConstraints={{left:0, right:props.barWidth}}
+                    dragConstraints={{bottom: props.barHeight, top: 0, left:0, right:props.barWidth}}
                     dragElastic={false}
                     dragMomentum={false}
                     dragControls={dragControls}
                     dragPropagation={false}
-                    onDrag={(event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo)=>{props.setInput(info.point.x/(props.barWidth))}}
+                    onDrag={(event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo)=>{
+                        props.setInputX(info.point.x/(props.barWidth));
+                        props.setInputY(1-info.point.y/(props.barHeight));
+                    }}
                     variants={props.innerCursorVariants}
                 >
+                    <InnerCursorSVG/>
                 </motion.div>
             </motion.div>
-            {/* <motion.img
-                id={"slider-outer-cursor"}
-                src={props.outerCursorSVGUrl}
-                style={{...outerCursorDefaultStyle, ...props.outerCursorStyle, ...outerCursorOverrideStyle}}
-                variants={props.outerCursorVariants}
-                width={props.outerCursorWidth}
-                onMouseDown={(e : React.MouseEvent<HTMLImageElement, MouseEvent>)=>{
-                    startDrag(e);
-                    e.preventDefault()
-                }}
-            >
-            </motion.img> */}
             <motion.div 
-                id={"slider-outer-cursor"} 
-                variants={props.outerCursorVariants}
-                style={{...outerCursorDefaultStyle, ...props.outerCursorStyle, ...outerCursorOverrideStyle}}
-                ref={outerCursorRef}
+                id={"slider-outer-cursor-x"} 
+                variants={props.outerCursorXVariants}
+                style={{...outerCursorXDefaultStyle, ...props.outerCursorXStyle, ...outerCursorXOverrideStyle}}
             >
-                <OuterCursor width={props.outerCursorWidth} style={{overflow:"visible"}}/>
+                <OuterCursorSVG/>
+            </motion.div>
+            <motion.div 
+                id={"slider-outer-cursor-y"} 
+                variants={props.outerCursorYVariants}
+                style={{...outerCursorYDefaultStyle, ...props.outerCursorYStyle, ...outerCursorYOverrideStyle}}
+            >
+                <OuterCursorSVG/>
             </motion.div>
         </motion.div>
     );
-}
+});

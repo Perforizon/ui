@@ -141,9 +141,9 @@ export const HorizontalSlider = (props : SliderProps) =>
      */
     const OuterCursorSVG = () => {
         if (props.outerCursorSVG)
-            return <props.outerCursorSVG id="outer-cursor-svg" width={props.outerCursorWidth} style={{overflow:"visible"}}/>
+            return <props.outerCursorSVG id="slider-outer-cursor-svg" width={props.outerCursorWidth} style={{overflow:"visible"}}/>
         else
-            return <div id="outer-cursor-svg:null"></div>
+            return <div id="slider-outer-cursor-svg:null"></div>
     }
     
     return (
@@ -203,18 +203,6 @@ export const HorizontalSlider = (props : SliderProps) =>
                 >
                 </motion.div>
             </motion.div>
-            {/* <motion.img
-                id={"slider-outer-cursor"}
-                src={props.outerCursorSVGUrl}
-                style={{...outerCursorDefaultStyle, ...props.outerCursorStyle, ...outerCursorOverrideStyle}}
-                variants={props.outerCursorVariants}
-                width={props.outerCursorWidth}
-                onMouseDown={(e : React.MouseEvent<HTMLImageElement, MouseEvent>)=>{
-                    startDrag(e);
-                    e.preventDefault()
-                }}
-            >
-            </motion.img> */}
             <motion.div 
                 id={"slider-outer-cursor"} 
                 variants={props.outerCursorVariants}

@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import CSS from "csstype";
 import {motion, Variants, PanInfo, HTMLMotionProps, useDragControls, useMotionValue, useTransform, MotionStyle} from "framer-motion";
 import "../../../styles/no-select.scss";
-import OuterCursor from "../../../images/slider/outerCursor.svg"
+import OuterCursor from "../../../images/slider/outer-cursor.svg"
 
 interface SliderProps  extends HTMLMotionProps<"div">{
     outerCursorSVGUrl ?: string,
@@ -33,7 +33,7 @@ interface SliderProps  extends HTMLMotionProps<"div">{
      */
 }
 
-export const HorizontalSlider = (props : SliderProps) =>
+export const VerticalSlider = (props : SliderProps) =>
 { 
     /*
      * ================================================================
