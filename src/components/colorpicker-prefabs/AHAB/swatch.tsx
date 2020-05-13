@@ -3,18 +3,24 @@ import {SwatchCanvas, SwatchCanvasProps} from "@perforizon/colorpicker"
 import { motion, HTMLMotionProps } from "framer-motion"
 import { VEC4 } from "@perforizon/math"
 
-export const Swatch = (props : HTMLMotionProps<"div"> & {swatchCanvasProps?:Partial<SwatchCanvasProps>}) => {
+interface SwatchProps extends HTMLMotionProps<"div">{
+    width: number;
+    height: number;
+    webglColor : VEC4;
+    webglOpacity : number;
+}
+
+export const Swatch = (props : SwatchProps) => {
     const defaultStyle = {
-        boxShadow:`0px 0px 0px 2px rgba(154,154,155,1)`,
-        width: `200px`,
-        height: `200px`
+        width: props.width,
+        height: props.height
     }
     const defaultSwatchCanvasProps = {
-        width:200,
-        height:200,
-        color:[1,0,0,1] as VEC4,
-        patternColor0:[.7,.7,.7,.7] as VEC4,
-        patternColor1: [.4,.4,.4,.7] as VEC4, 
+        width:props.width,
+        height:props.height,
+        color:props.webglColor,
+        patternColor0:[.7,.7,.7,1] as VEC4,
+        patternColor1: [1,1,1,1] as VEC4, 
         patternSize:8,
         opacity:.8
     }
@@ -28,7 +34,8 @@ export const Swatch = (props : HTMLMotionProps<"div"> & {swatchCanvasProps?:Part
             {...props}
         >
             <SwatchCanvas 
-                {...{...defaultSwatchCanvasProps, ...props.swatchCanvasProps}}
+                {...{...defaultSwatchCanvasProps, color:props.webglColor, opacity:props.webglOpacity}}
+                style={{position:"absolute", top:0, left:0}}
             />
         </motion.div>
     )

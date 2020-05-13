@@ -1,6 +1,6 @@
-import React, { useRef, forwardRef } from "react";
+import React, { useRef, forwardRef,useState, useLayoutEffect } from "react";
 import CSS from "csstype";
-import {motion, Variants, PanInfo, HTMLMotionProps, useDragControls, useMotionValue, useTransform, MotionStyle} from "framer-motion";
+import {motion, Variants, PanInfo, HTMLMotionProps, useDragControls, useMotionValue, useTransform, MotionStyle, TapInfo} from "framer-motion";
 import "../../../styles/no-select.scss";
 
 export interface BoxSliderProps  extends HTMLMotionProps<"div">{
@@ -53,6 +53,12 @@ export const BoxSlider = forwardRef((props : BoxSliderProps, ref : React.Ref<HTM
     const dragXOuterCursorTransform = useTransform(dragX, (x)=> x);
     const dragYOuterCursorTransform = useTransform(dragY, (x)=> x);
     const innerLineXTransform = useTransform(dragX, (x) => x/props.barWidth);
+
+    const divRef : React.Ref<HTMLDivElement> = useRef(null);
+    const [divRect, setDivRect] = useState<DOMRect>(null);
+    useLayoutEffect(()=>{
+        setDivRect(divRef.current?.getBoundingClientRect());
+    }, [divRef]);
     /*
      * ================================================================
      *  css styles
@@ -198,13 +204,13 @@ export const BoxSlider = forwardRef((props : BoxSliderProps, ref : React.Ref<HTM
             return <div id="slider-outer-cursor-svg:null"></div>
     }
 
-
     return (
         <motion.div
             id={"slider-wrapper"}
             ref={ref}
             {...props}
             style={{...wrapperDefaultStyle, ...props.style, ...wrapperStyle}}
+            variants={props.variants}
             /** 
              *  "no-select" to prevent svg image from being highlighted 
             */
@@ -220,7 +226,14 @@ export const BoxSlider = forwardRef((props : BoxSliderProps, ref : React.Ref<HTM
                  *   3. OverrideStyle will override an user settings (aka override style settings are required)
                 */
                 style={{...barDefaultStyle, ...props.barStyle, ...barOverrideStyle}} 
-                onMouseDown={startDrag}
+                onMouseDown={(event: React.MouseEvent<HTMLDivElement, MouseEvent>)=>{
+                    const inputX = divRect? (event.clientX - divRect.x) / divRect.width : 0;
+                    const inputY = divRect? (event.clientY - divRect.y) / divRect.height : 0;
+                    props.setInputX(inputX);
+                    props.setInputY(1-inputY);
+                    startDrag(event)
+                }}
+                ref={divRef}
                 variants={props.barVariants}
             >
                 {/**

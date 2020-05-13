@@ -1,16 +1,20 @@
-import React from "react"
+import React, { useState } from "react"
 import {AhabColorPicker} from "."
+import {VEC4} from "@perforizon/math"
 
 export default {
     title: "color-pickers"
 };
 
 export const AHAB = () => {
+    const [color, setColor] = useState<VEC4>([1,0,0,1]);
     return (
         <AhabColorPicker 
-            size={200} 
-            saturationBrightnessPercentSize={.85} 
-            gapPercentageSize={.04}
+            size={340} 
+            borderSize={4}
+            saturationBrightnessPercentSize={.88} 
+            gapPercentageSize={.01}
+            setColor={setColor}
         />
     )
 }

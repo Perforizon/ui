@@ -1,6 +1,6 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useLayoutEffect } from "react";
 import CSS from "csstype";
-import {motion, Variants, PanInfo, HTMLMotionProps, useDragControls, useMotionValue, useTransform, MotionStyle} from "framer-motion";
+import {motion, Variants, PanInfo, HTMLMotionProps, useDragControls, useMotionValue, useTransform, MotionStyle, TapInfo} from "framer-motion";
 import "../../../styles/no-select.scss";
 import OuterCursor from "../../../images/slider/outer-cursor.svg"
 
@@ -45,6 +45,12 @@ export const VerticalSlider = (props : SliderProps) =>
     const dragX = useMotionValue(null);
     const dragXCursor1Transform = useTransform(dragX, (x)=> x);
     const fillScaleXTransform = useTransform(dragX, (x) => (1-x/props.barHeight));
+
+    const divRef : React.Ref<HTMLDivElement> = useRef(null);
+    const [divRect, setDivRect] = useState<DOMRect>(null);
+    useLayoutEffect(()=>{
+        setDivRect(divRef.current?.getBoundingClientRect());
+    }, [divRef]);
     /*
      * ================================================================
      *  css styles
@@ -69,7 +75,7 @@ export const VerticalSlider = (props : SliderProps) =>
     };
 
     const innerCursorDefaultStyle : MotionStyle = {
-        backgroundColor:"cornsilk",
+        backgroundColor:"blue",
         width: 15,
         height: 15
     };
@@ -156,7 +162,13 @@ export const VerticalSlider = (props : SliderProps) =>
             /** 
              *  "no-select" to prevent svg image from being highlighted 
             */
-            className={"no-select"}
+           ref={divRef}
+           onMouseDown={(event : React.MouseEvent<HTMLDivElement, MouseEvent>)=>{
+               const inputY = divRect? (event.clientY - divRect.y) / divRect.height : 0;
+               props.setInput(1-inputY);
+               startDrag(event);
+            }}
+           className={"no-select"}
         >
             {props.children}
             <motion.div 
@@ -168,7 +180,6 @@ export const VerticalSlider = (props : SliderProps) =>
                  *   3. OverrideStyle will override an user settings (aka override style settings are required)
                 */
                 style={{...barDefaultStyle, ...props.barStyle, ...barOverrideStyle}} 
-                onMouseDown={startDrag}
                 variants={props.barVariants}
             >
                 {/**

@@ -1,6 +1,6 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useLayoutEffect } from "react";
 import CSS from "csstype";
-import {motion, Variants, PanInfo, HTMLMotionProps, useDragControls, useMotionValue, useTransform, MotionStyle} from "framer-motion";
+import {motion, Variants, PanInfo, HTMLMotionProps, useDragControls, useMotionValue, useTransform, MotionStyle, TapInfo} from "framer-motion";
 import "../../../styles/no-select.scss";
 
 interface SliderProps  extends HTMLMotionProps<"div">{
@@ -43,6 +43,12 @@ export const HorizontalSlider = (props : SliderProps) =>
     const dragX = useMotionValue(null);
     const dragXCursor1Transform = useTransform(dragX, (x)=> x);
     const fillScaleXTransform = useTransform(dragX, (x) => x/props.barWidth);
+
+    const divRef : React.Ref<HTMLDivElement> = useRef(null);
+    const [divRect, setDivRect] = useState<DOMRect>(null);
+    useLayoutEffect(()=>{
+        setDivRect(divRef.current?.getBoundingClientRect());
+    }, [divRef]);
     /*
      * ================================================================
      *  css styles
@@ -131,7 +137,7 @@ export const HorizontalSlider = (props : SliderProps) =>
         scaleX: fillScaleXTransform
     }
 
-    function startDrag(event) {
+    function startDrag(event : React.MouseEvent<HTMLDivElement, MouseEvent>) {
         dragControls.start(event, { snapToCursor: true })
     }
     /*
@@ -150,6 +156,12 @@ export const HorizontalSlider = (props : SliderProps) =>
         <motion.div
             id={"slider-wrapper"}
             {...props}
+            onMouseDown={(
+                event: React.MouseEvent<HTMLDivElement, MouseEvent>) =>{ 
+                    const inputX = divRect? (event.clientX - divRect.x) / divRect.width : 0;
+                    props.setInput(inputX);
+                    startDrag(event) 
+                }}
             style={{...wrapperDefaultStyle, ...props.style, ...wrapperStyle}}
             /** 
              *  "no-select" to prevent svg image from being highlighted 
@@ -166,7 +178,7 @@ export const HorizontalSlider = (props : SliderProps) =>
                  *   3. OverrideStyle will override an user settings (aka override style settings are required)
                 */
                 style={{...barDefaultStyle, ...props.barStyle, ...barOverrideStyle}} 
-                onMouseDown={startDrag}
+                ref={divRef}
                 variants={props.barVariants}
             >
                 {/**

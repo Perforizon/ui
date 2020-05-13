@@ -9,22 +9,18 @@ interface HueProps extends HTMLMotionProps<"div"> {
     width: number;
     height: number;
     borderSize : number;
-}
-
-const defaultStyle = {
-
+    setHueInput : React.Dispatch<React.SetStateAction<number>>;
 }
 
 export const Hue = (props : HueProps) =>{ 
-    const [input, setInput] = useState(1);
-  
+    const borderSize=props.borderSize;
     const width = props.width;
     const height = props.height;
-    const borderSize = props.borderSize;
 
     const innerCursorVariants = {
       default : {
           boxShadow:"0px 0px 25px 2px rgba(255,255,255,.5)",
+          backgroundColor: "rgba(150,150,180,1)",
           scaleY: 1,
           transition: {
             type: "tween",
@@ -32,9 +28,9 @@ export const Hue = (props : HueProps) =>{
           }
       },
       highlight : {
-          boxShadow:"0px 0px 4px 2px rgba(255,255,255,1)",
-          scaleY: 2,
+          boxShadow:"0px 0px 2px 2px rgba(200,200,220,1)",
           backgroundColor: "rgba(255,255,255,1)",
+          scaleY: 2,
           transition: {
             type: "tween",
             duration: .1
@@ -45,11 +41,13 @@ export const Hue = (props : HueProps) =>{
         default : {
             opacity: .7,
             scale : 1,
-            fill: `rgba(200,200,200,1)`
+            stroke:"rgb(150,150,180)",
+            fill: `rgba(200,200,220,1)`
         },
         highlight : {
             opacity: 1,   
             scale: 2,
+            stroke:"rgb(200,200,220)",
             fill: `rgba(255,255,255,1)`,
             transition: {
               type: "tween",
@@ -65,10 +63,21 @@ export const Hue = (props : HueProps) =>{
         backgroundColor: "rgba(255,255,255,0)"
       }
     }
+    const sliderVariants = {
+      default : {
+        /** background color same as box shadow to prevent 1 px gap glitch */
+        backgroundColor:`rgba(150,150,180,1)`,
+        boxShadow:`0px 0px 0px ${borderSize}px rgba(150,150,180,1)`
+      },
+      highlight : {
+        backgroundColor:`rgba(200,200,220,1)`,
+        boxShadow:`0px 0px 0px ${borderSize}px rgba(200,200,220,1)`
+      }
+    }
     return (
-      <motion.div id={"hue"} style={{...defaultStyle, ...props.style}}>
+      <motion.div id={"hue"} {...props}>
         <VerticalSlider 
-          setInput={setInput} 
+          setInput={props.setHueInput} 
           barHeight={height}
           barWidth={width}
           innerCursorWidth={5} 
@@ -76,22 +85,22 @@ export const Hue = (props : HueProps) =>{
           fillVariants={fillVariants}
           outerCursorVariants={outerCursorVariants}
           innerCursorVariants={innerCursorVariants}
+          innerCursorStyle={{  backgroundColor: "rgba(200,200,220,1)",}}
           barStyle={{
             background: "rgba(0,0,0,0)",
-            boxShadow:`0px 0px 0px ${borderSize}px rgba(154,154,155,1)`
           }}
-          innerCursorStyle={{backgroundColor: "rgba(240,240,240,1", boxShadow:"0px 0px 4px 2px rgba(255,255,255,0)"}}
           outerCursorSVG={OuterCursorSVG}
           outerCursorStyle={{
             backgroundColor: "rgba(0,0,0,0)",
             fill:"red",
-            stroke:"rgb(154,154,155)",
+            stroke:"rgb(150,150,180)",
             strokeWidth:1,
           }}
           outerCursorOffset={borderSize}
           whileHover={"highlight"}
           whileTap={"highlight"}
           initial={"default"}
+          variants={sliderVariants}
         >
           <HueCanvas 
             width={width} 

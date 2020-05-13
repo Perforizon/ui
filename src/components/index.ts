@@ -1,1 +1,2 @@
-export * from "./slider/slider-horizontal"
+export * from "./slider"
+export * from "./colorpicker-prefabs"
