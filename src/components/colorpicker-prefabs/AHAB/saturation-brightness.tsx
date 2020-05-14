@@ -102,7 +102,7 @@ export const SaturationBrightness = (props : SaturationBrightnessProps) => {
           outerCursorOffset={2.1}
           initial={"default"}
           whileHover={"highlight"}
-          whileTap={"press"}
+          whileTap={"highlight"}
 
           variants={sliderVariants}
         >

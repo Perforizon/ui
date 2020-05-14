@@ -10,10 +10,10 @@ export const AHAB = () => {
     const [color, setColor] = useState<VEC4>([1,0,0,1]);
     return (
         <AhabColorPicker 
-            size={340} 
+            size={350} 
             borderSize={4}
-            saturationBrightnessPercentSize={.88} 
-            gapPercentageSize={.01}
+            saturationBrightnessPercentSize={.855} 
+            gapPercentageSize={.03}
             setColor={setColor}
         />
     )
