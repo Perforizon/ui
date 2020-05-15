@@ -1,56 +1,62 @@
 import React, {useRef, useEffect, Children, } from "react"
-import {motion, MotionStyle} from "framer-motion"
+import {motion, MotionStyle, HTMLMotionProps} from "framer-motion"
+import {merge} from "lodash"
+import config from "../../utility/config";
 
 export default {
     title:"panel"
 } 
-
-interface ContainerProps {
-    width ?: number;
-    height ?: number;
-    style ?: MotionStyle;
-    children ?: any;
-}
-
+interface ContainerProps extends Partial<HTMLMotionProps<"div">>{}
+interface ChildProps extends Partial<HTMLMotionProps<"div">>{}
 const Container = (userProps : ContainerProps) => {
-    const margin = 10;
-
-
-    const defaultStyle_child : MotionStyle = {
-        backgroundColor:'blue',
+    /**
+     *  Child Config
+     * _______________________________________________
+     */
+    let childConfig = new config<ChildProps>();
+    childConfig.default = {
+        style :{
+            backgroundColor:'black',
+        }
     };
-    const overrideStyle_child : MotionStyle = {
-        margin,
-        flexShrink: 0
+    childConfig.override = {
+        style : {
+            margin: 10,
+            flexShrink: 0
+        },
+        whileHover : {scale:1.2}
     }
-    const injectProps = (child : any, index : number) => {
-        const userStyle_child : MotionStyle = child.props.style;
-        const finalStyle_child : MotionStyle = {...defaultStyle_child, ...userStyle_child, ...overrideStyle_child};
-        return React.cloneElement(child, {style:finalStyle_child});
+    const injectStyle = (child : any, index : number) => {
+        childConfig.user = child.props;
+        return React.cloneElement(child, childConfig.final());
     }
-    const userStyle : MotionStyle = userProps.style;
-    const defaultStyle : MotionStyle = {
-        width: 256,
-        height: 180,
-        backgroundColor: `grey`
+
+    /**
+     *  Wrapper Config
+     * _______________________________________________
+     */
+    const wrapperConfig = new config<ContainerProps>();
+    wrapperConfig.default = {
+        style: {
+            backgroundColor: `grey`,
+            width: 256,
+            height: 180,
+        }
     }
-    const overrideStyle : MotionStyle = {
-        display:`flex`,
-        flexDirection: `column`,
-        alignItems: `center`,
-        overflowY: `scroll`,
-        overflowX: `hidden`
-    }
-    const finalStyle : MotionStyle = {
-        ...userStyle,
-        ...defaultStyle,
-        ...overrideStyle
-    }
-    const finalProps = {...userProps, style:finalStyle};
+    wrapperConfig.user = userProps;
+    wrapperConfig.override = {
+        style: {        
+            display:`flex`,
+            flexDirection: `column`,
+            alignItems: `center`,
+            overflowY: `scroll`,
+            overflowX: `hidden`
+        }
+    };
 
     return (
-        <motion.div {...finalProps}>
-            {Children.map(userProps.children, injectProps)}
+        <motion.div {...wrapperConfig.final()}>
+            {Children.map(userProps.children, injectStyle)}
             <div id={"footer"} style={{height:1,width:1,flexShrink:0}}/>
         </motion.div>
     );
@@ -58,12 +64,12 @@ const Container = (userProps : ContainerProps) => {
 
 export const AHABPanel = () =>
 {
-    const style = {width:100,height:100};
+    const style = {width:100,height:100, backgroundColor:'blue', border: '1px solid cyan'};
     return (
         <Container style={{border: "4px solid black"}}>
-            <div id={"child_0"} style={style}></div>
-            <div id={"child_1"} style={style}></div>
-            <div id={"child_2"} style={style}></div>
+            <motion.div id={"child_0"} style={style}></motion.div>
+            <motion.div id={"child_1"} style={style}></motion.div>
+            <motion.div id={"child_2"} style={style}></motion.div>
         </Container>
     );
 }
