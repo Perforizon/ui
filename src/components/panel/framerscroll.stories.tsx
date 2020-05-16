@@ -34,12 +34,12 @@ const LoremIpsum = (props : LoremIpsumProps) =>
 }
 
 interface FramerScrollProps {
-    viewPortStyle ?: MotionStyle;
+    viewportStyle ?: MotionStyle;
     contentWrapperStyle ?: MotionStyle;
     trackStyle ?: MotionStyle;
     thumbStyle ?: MotionStyle;
 
-    dynamicThumbHeight ?: boolean;
+    isThumbHeightDynamic ?: boolean;
     scrollSensitivity ?: number;
 }
 
@@ -60,7 +60,7 @@ class SimpleTransform {
     }
 }
 
-export const FramerScroll = (props : FramerScrollProps) => {
+export const FramerScroll = (userProps : FramerScrollProps) => {
     const viewportRef = useRef<HTMLDivElement>(null);
     const contentWrapperRef = useRef<HTMLDivElement>(null);
     const trackRef = useRef<HTMLDivElement>(null);
@@ -68,75 +68,52 @@ export const FramerScroll = (props : FramerScrollProps) => {
     const thumbTransformRef = useRef<SimpleTransform>(new SimpleTransform());
     const trackTransformRef = useRef<SimpleTransform>(new SimpleTransform());
 
-    const dynamicThumbHeightConfig = new configPrimitive<boolean>();
-    dynamicThumbHeightConfig.default = true;
-    dynamicThumbHeightConfig.user = props.dynamicThumbHeight;
-    const [isThumbHeightDynamic, setDynamicThumbHeight] = dynamicThumbHeightConfig.useFinal();
-
-    const scrollSensitivityConfig = new configPrimitive<number>();
-    scrollSensitivityConfig.default = 12;
-    scrollSensitivityConfig.user = props.scrollSensitivity;
-    const [scrollSensitivity, setScrollSensitivity] = scrollSensitivityConfig.useFinal();
-
-    const viewportStyleConfig =  new config<MotionStyle>();
-    viewportStyleConfig.default = {
-        width: 256,
-        height: 256,
-        backgroundColor: `rgb(200, 250, 220)`,
-        pointerEvents: `auto`,
-        userSelect: `auto`,
-        position: `relative`,
-        overflow: `hidden`
+    const propsConfig = useRef(new config<FramerScrollProps>());
+    propsConfig.current.default = {
+        isThumbHeightDynamic : true,
+        scrollSensitivity : 12,
+        /**  Styles */
+        viewportStyle : {
+            width: 256,
+            height: 256,
+            backgroundColor: `rgb(200, 250, 220)`,
+            pointerEvents: `auto`,
+            userSelect: `auto`,
+            position: `relative`,
+            overflow: `hidden`
+        },
+        contentWrapperStyle : {
+            transition: `transform .5s linear 0s`
+        },
+        trackStyle : {
+            height: `100%`,
+            position: `absolute`,
+            top: 0,
+            right: 0,
+            zIndex: 1,
+            width: 20,
+            transformOrigin: `top right`,
+            backgroundColor: `rgb(0, 0, 102)`,
+            opacity: 0,
+            transition: `transform .4s cubic-bezier(.33,.8,.42,.96) 0s,  opacity .2s ease 0s`
+        },
+        thumbStyle : {
+            position:`absolute`,
+            top: 0,
+            right: 0,
+            zIndex: 1,
+            width: 20,
+            height: 64,
+            transformOrigin: `top right`,
+            opacity: 0,
+            backgroundColor: `rgb(180,180,255)`,
+            transition: `transform .4s cubic-bezier(.33,.8,.42,.96) 0s, opacity .2s ease 0s`
+        }
     }
-    viewportStyleConfig.user = props.viewPortStyle;
-    const viewportStyle = viewportStyleConfig.final();
+    propsConfig.current.user = userProps;
+    propsConfig.current.finalize();
 
-    const contentWrapperStyleConfig = new config<MotionStyle>();
-    contentWrapperStyleConfig.default = {
-        transition: `transform .5s linear 0s`
-    }
-    contentWrapperStyleConfig.user = props.contentWrapperStyle;
-    const contentWrapperStyle = contentWrapperStyleConfig.final();
-
-    const trackStyleConfig = new config<MotionStyle>();
-    trackStyleConfig.default = {
-        height: `100%`,
-        position: `absolute`,
-        top: 0,
-        right: 0,
-        zIndex: 1,
-        width: 20,
-        transformOrigin: `top right`,
-        backgroundColor: `rgb(0, 0, 102)`,
-        opacity: 0,
-        transition: `transform .4s cubic-bezier(.33,.8,.42,.96) 0s,  opacity .2s ease 0s`
-    };
-    trackStyleConfig.user = props.trackStyle;
-    const trackStyle = trackStyleConfig.final();
-
-    const thumbStyleConfig = new config<MotionStyle>();
-    thumbStyleConfig.default = {
-        position:`absolute`,
-        top: 0,
-        right: 0,
-        zIndex: 1,
-        width: 20,
-        height: 64,
-        transformOrigin: `top right`,
-        opacity: 0,
-        backgroundColor: `rgb(180,180,255)`,
-        transition: `transform .4s cubic-bezier(.33,.8,.42,.96) 0s, opacity .2s ease 0s`
-    }
-    thumbStyleConfig.user = props.thumbStyle;
-    const thumbStyle = thumbStyleConfig.final();
-
-
-
-
-
-    
     const contentWrapperYRef = useRef(0);
-
     const wheelHandler = (event : WheelEvent ) => {
         const viewportBoundingRect = viewportRef.current.getBoundingClientRect();
         const thumbBoundingRect = thumbRef.current.getBoundingClientRect();
@@ -145,7 +122,7 @@ export const FramerScroll = (props : FramerScrollProps) => {
         const maxThumbDelta = viewportHeight-thumbHeight;
         const maxScrollDelta = viewportRef.current.scrollHeight-viewportHeight
 
-        contentWrapperYRef.current = Clamp(contentWrapperYRef.current+(-Math.sign(event.deltaY)*scrollSensitivity), 0, -maxScrollDelta)
+        contentWrapperYRef.current = Clamp(contentWrapperYRef.current+(-Math.sign(event.deltaY)*propsConfig.current.final.scrollSensitivity), 0, -maxScrollDelta)
         thumbTransformRef.current.y = (-contentWrapperYRef.current/maxScrollDelta*maxThumbDelta);
         contentWrapperRef.current.style.transform = `translateY(${contentWrapperYRef.current}px)`;
         thumbRef.current.style.transform = thumbTransformRef.current.matrix();
@@ -153,7 +130,6 @@ export const FramerScroll = (props : FramerScrollProps) => {
 
     const isDragging = useRef(false);
     const startDragPos = useRef(0);
-
     const dragStart = (y: number) => 
     {
         isDragging.current = true;
@@ -164,8 +140,8 @@ export const FramerScroll = (props : FramerScrollProps) => {
     const dragEnd = () => 
     {
         isDragging.current = false;
-        viewportRef.current.style.pointerEvents = viewportStyle.pointerEvents.valueOf() as string;
-        viewportRef.current.style.userSelect = viewportStyle.userSelect.valueOf() as string;
+        viewportRef.current.style.pointerEvents = propsConfig.current.final.viewportStyle.pointerEvents.valueOf() as string;
+        viewportRef.current.style.userSelect = propsConfig.current.final.viewportStyle.userSelect.valueOf() as string;
         thumbDefault();
     }
     const dragMove = (y: number) => {
@@ -195,11 +171,8 @@ export const FramerScroll = (props : FramerScrollProps) => {
         trackRef.current.style.opacity = `1`;
         trackRef.current.style.transform = trackTransformRef.current.matrix();
     }
-    const trackMouseDownHandler = (event : MouseEvent) => {
-        dragStart(event.clientY);
-        dragMove(event.clientY);
-    }
-    const thumbMouseDownHandler = (event : MouseEvent) => {
+    const mouseDownHandler = (event : MouseEvent) => {
+        propsConfig.current.final.scrollSensitivity = 300;
         dragStart(event.clientY);
         dragMove(event.clientY);
     }
@@ -235,48 +208,48 @@ export const FramerScroll = (props : FramerScrollProps) => {
     },[]);
 
     useEffect(()=>{
-        trackRef.current.addEventListener(`mousedown`, trackMouseDownHandler, {passive:true});
-        thumbRef.current.addEventListener(`mousedown`, thumbMouseDownHandler);
+        trackRef.current.addEventListener(`mousedown`, mouseDownHandler, {passive:true});
+        thumbRef.current.addEventListener(`mousedown`, mouseDownHandler);
         window.addEventListener(`mousemove`, thumbMouseMoveHandler);
         return () => {
-            trackRef.current.removeEventListener(`mousedown`, trackMouseDownHandler);
-            thumbRef.current.removeEventListener(`mousedown`, thumbMouseDownHandler);
+            trackRef.current.removeEventListener(`mousedown`, mouseDownHandler);
+            thumbRef.current.removeEventListener(`mousedown`, mouseDownHandler);
             window.removeEventListener(`mousemove`, thumbMouseMoveHandler);
         }
-    },[isThumbHeightDynamic])
+    },[])
 
     useEffect(()=>{
         viewportRef.current.addEventListener(`wheel`, wheelHandler);
         return () => {
             viewportRef.current.removeEventListener(`wheel`, wheelHandler);
         }
-    },[scrollSensitivity, isThumbHeightDynamic]);
+    },[]);
 
     useLayoutEffect(()=>{
         const viewportHeight = viewportRef.current.getBoundingClientRect().height;
         thumbRef.current.style.height = `${Math.pow(viewportHeight, 2)/viewportRef.current.scrollHeight}px`;
-    },[isThumbHeightDynamic])
+    },[])
 
     return (
         <motion.div 
             id={"viewport"}
             ref={viewportRef}
-            style={viewportStyle}
+            style={propsConfig.current.final.viewportStyle}
         >
             <motion.div
                 id={"track"}
                 ref={trackRef}
-                style={trackStyle}
+                style={propsConfig.current.final.trackStyle}
             />
             <motion.div
                 id={"thumb"}
                 ref={thumbRef}
-                style={thumbStyle}
+                style={propsConfig.current.final.thumbStyle}
             />
             <motion.div 
                 id={"content-wrapper"}
                 ref={contentWrapperRef}
-                style={contentWrapperStyle}
+                style={propsConfig.current.final.contentWrapperStyle}
             >
                 <LoremIpsum id={0}/>
                 <LoremIpsum id={1}/>

@@ -144,7 +144,7 @@ export const ScrollBarTest = (props : ScrollBarProps) => {
         trackRef.current.style.height = `${viewScrollHeight}px`
     }, [scrollViewPortRef, thumbRef]);
 
-    const scrollViewPortStyleFinal = scrollViewPortStyle.final();
+    const scrollViewPortStyleFinal = scrollViewPortStyle.finalize();
     const scrollMaskStyle : MotionStyle = {
         width:scrollViewPortStyleFinal.width,
         height:scrollViewPortStyleFinal.height,
@@ -157,17 +157,17 @@ export const ScrollBarTest = (props : ScrollBarProps) => {
                 id={"scroll-view-port"} 
                 className={"perforizon-scrollbar-viewport"}
                 ref={scrollViewPortRef}
-                style={scrollViewPortStyle.final()}
+                style={scrollViewPortStyle.finalize()}
             >   
                 <motion.div 
                     id={"thumb"} 
                     ref={thumbRef} 
-                    style={thumbStyle.final()}
+                    style={thumbStyle.finalize()}
                     whileHover={"focus"}
                     whileTap={"focus"}
                     variants={variants}
                 />
-                <motion.div ref={trackRef} style={trackStyle.final()}></motion.div>
+                <motion.div ref={trackRef} style={trackStyle.finalize()}></motion.div>
                 <LoremIpsum id={0}/>
                 <LoremIpsum id={1}/>
                 <LoremIpsum id={2}/>
