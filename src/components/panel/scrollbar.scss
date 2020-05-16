@@ -1,0 +1,9 @@
+
+.perforizon-scrollbar-viewport::-webkit-scrollbar {
+  width: 0px !important;
+  height: 0px !important;
+}
+.perforizon-scrollbar-viewport {
+  overflow: -moz-scrollbars-none;
+  -ms-overflow-style: none; 
+}

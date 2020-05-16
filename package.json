@@ -1,6 +1,6 @@
 {
   "name": "@perforizon/ui",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
@@ -59,7 +59,9 @@
   "dependencies": {
     "@perforizon/colorpicker": "^1.0.15",
     "@types/lodash": "^4.14.150",
+    "@types/lodash-es": "^4.17.3",
     "framer-motion": "^1.10.3",
-    "lodash": "^4.17.15"
+    "lodash": "^4.17.15",
+    "lodash-es": "^4.17.15"
   }
 }

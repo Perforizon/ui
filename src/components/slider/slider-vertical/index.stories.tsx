@@ -3,6 +3,7 @@ import {VerticalSlider} from '.';
 import OuterCursorSVG from "../../../images/slider/outer-cursor.svg";
 import {HueCanvas} from "@perforizon/colorpicker";
 import "../../../styles/no-select.scss";
+import {} from "framer-motion";
 
 export default {
   title: "Slider-Vertical"
@@ -195,3 +196,5 @@ export const Hue = () =>{
     </div>
   )
 };
+
+

@@ -6,9 +6,13 @@ import svgr from "@svgr/rollup";
 import copy from "rollup-plugin-copy";
 
 import packageJson from "./package.json";
-
+ 
+const globals = {
+    lodash: 'lodash'
+}
 export default {
   input: "src/index.ts",
+
   output: [
     {
       dir: "./build",

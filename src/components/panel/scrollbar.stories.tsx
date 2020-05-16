@@ -1,14 +1,15 @@
 import React, { useRef, useEffect,useState, Ref, useLayoutEffect } from "react";
-import {motion, MotionStyle} from "framer-motion";
-import {merge} from "lodash";
-import "../../fonts/fira/stylesheet.css";
-import "./scrollbar.css";
+import CSS from "csstype";
+import {motion, MotionStyle, MotionValue, useMotionValue, useTransform} from "framer-motion";
+import {Clamp} from "@perforizon/math";
+import "../../fonts/fira/stylesheet.scss";
+import "./scrollbar.scss";
 import config from "../../utility/config";
 
 export default {
     title: `scrollbar`
 }
-const FakeContent = ({id}) => {
+const LoremIpsum = ({id}) => {
     const style : MotionStyle = {
         marginTop: 16,
         marginBottom: 16,
@@ -28,114 +29,189 @@ interface ScrollBarProps {
 }
 
 export const ScrollBarTest = (props : ScrollBarProps) => {
-    const perspectiveCtrlRef = useRef<HTMLDivElement>(null);
+    const scrollViewPortRef = useRef<HTMLDivElement>(null);
     const thumbRef = useRef<HTMLDivElement>(null);
-
-    const perspectiveCtrlStyle = new config<MotionStyle>();
-    perspectiveCtrlStyle.default = {
+    const trackRef =  useRef<HTMLDivElement>(null);
+    const scrollViewPortStyle = new config<MotionStyle>();
+    scrollViewPortStyle.default = {
         position: `relative`,
-        width: 256,
-        height: 512,
+        width: 256+17,
+        height: 256,
+        /** prevent microsoft edge from scrolling to the right when 
+         * user highlights text and drags right
+         */
+        msScrollLimitXMax: 0,
         backgroundColor: `coral`
     }
-    perspectiveCtrlStyle.user = props.perspectiveControlStyle;
-    perspectiveCtrlStyle.override = {
+    scrollViewPortStyle.user = props.perspectiveControlStyle;
+    scrollViewPortStyle.override = {
         overflowX: `hidden`,
         overflowY: `scroll`,
         perspective: `1px`,
         perspectiveOrigin: `top left`,
-        scrollbarWidth: `none`
+        scrollbarWidth: `none`,
+        transformStyle: `preserve-3d`,
+        WebkitOverflowScrolling: `touch`,
+    }
+    const trackStyle = new config<MotionStyle>();
+    const [scrollHeight, setScrollHeight] = useState(0);
+    trackStyle.default = {
+        width:32,
+        border: `6px solid black`,
+        backgroundColor:`blue`
+    }
+    trackStyle.override = {
+        position:`absolute`,
+        top:0,
+        height: scrollHeight
     }
 
     const thumbStyle = new config<MotionStyle>();
     const [thumbTransform, setThumbTransform] = useState(``);
-
     thumbStyle.default = {
-        width: 64,
+        width: 32,
         height: 128,
-        backgroundColor: `blue`
+        backgroundColor: `rgb(200,200,220)`,
+        border: `6px solid black`,
     }
     thumbStyle.user = props.thumbStyle;
     thumbStyle.override = {
         position: `absolute`,
-        left:0,
-        top:0,
         transform: thumbTransform,
-        transformOrigin: `top left`
+        transformOrigin: `top left`,
+        zIndex: 1
     }
 
+    const variants = {
+        default : {
+            backgroundColor: `rgb(200,200,220)`,
+            borderColor: `rgb(150,150,180)`
+        },
+        focus : {
+            backgroundColor: `rgb(255,255,255)`,
+            borderColor: `rgb(200,200,220)`
+        }
+    }
+
+    useEffect(()=>{
+        // Edge requires a transform on the document body and a fixed position element
+        // in order for it to properly render the parallax effect as you scroll.
+        if (getComputedStyle(document.body).transform == "none")
+        {
+            document.body.style.transform = "translateZ(0)";
+            document.body.style.translate = "no";
+        }
+        if (!document.getElementById("microsoft-edge-fixed-position-scroll-div"))
+        {
+            const fixedPos = document.createElement("div");
+            fixedPos.id = "microsoft-edge-fixed-position-scroll-div"
+            fixedPos.style.position = "fixed";
+            fixedPos.style.top = "0";
+            fixedPos.style.width = "1px";
+            fixedPos.style.height = "1px";
+            fixedPos.style.zIndex = "1"; 
+            document.body.insertBefore(fixedPos, document.body.firstChild);
+        }
+    }, [])
+
     useLayoutEffect(()=>{
-        const viewRect = perspectiveCtrlRef.current.getBoundingClientRect();
-        const viewHeight = viewRect.height;
-        const viewWidth = viewRect.width;
-        const scrollableHeight = (perspectiveCtrlRef.current.scrollHeight);
-        const thumbHeight = thumbRef.current.getBoundingClientRect().height;
-        const thumbWidth = thumbRef.current.getBoundingClientRect().width;
-        const maxScrollDistance = scrollableHeight-viewHeight;
-        const maxScrollbarOffset = viewHeight-thumbHeight;
-        const scaling =maxScrollbarOffset/maxScrollDistance;
+        const viewBoundingRect = scrollViewPortRef.current.getBoundingClientRect();
+        const viewHeight = viewBoundingRect.height;
+        const viewWidth = viewBoundingRect.width;
+        const viewScrollHeight = (scrollViewPortRef.current.scrollHeight);
+
+        const thumbBoundingRect = thumbRef.current.getBoundingClientRect();
+        const thumbHeight = thumbBoundingRect.height;
+        const thumbWidth = thumbBoundingRect.width;
+
+        const viewScrollHeightDelta = Math.abs(viewHeight-viewScrollHeight);
+        const viewThumbHeightDelta = Math.abs(viewHeight-thumbHeight);
+
+        const scaling = 1/(viewThumbHeightDelta/viewScrollHeightDelta);
 
         setThumbTransform(`
-               scale(${1 / scaling})
+               scale(${scaling})
                matrix3d(
                  1, 0, 0, 0,
                  0, 1, 0, 0,
                  0, 0, 1, 0,
-                 0, 0, 0, -1
+                 ${viewWidth-thumbWidth}, 0, ${-2 + 1 - scaling}, -1
                )
-               translateZ(${-2 + 1 - 1 / scaling}px)
-               translateX(${viewWidth-thumbWidth}px)
-            `)
-    }, [perspectiveCtrlRef, thumbRef]);
+        `);
+        thumbRef.current.style.left = `calc(${getComputedStyle(thumbRef.current).left} * ${-scaling})`;
+        thumbRef.current.style.top = `calc(${getComputedStyle(thumbRef.current).top} * ${-scaling})`;
+        trackRef.current.style.left = `${viewWidth - trackRef.current.getBoundingClientRect().width}px`
+        trackRef.current.style.height = `${viewScrollHeight}px`
+    }, [scrollViewPortRef, thumbRef]);
+
+    const scrollViewPortStyleFinal = scrollViewPortStyle.final();
+    const scrollMaskStyle : MotionStyle = {
+        width:scrollViewPortStyleFinal.width,
+        height:scrollViewPortStyleFinal.height,
+        overflowX: `hidden`
+    };
 
     return (
-        <motion.div 
-            id={"perspective-ctrl"} 
-            ref={perspectiveCtrlRef}
-            style={perspectiveCtrlStyle.final()}
-        >
-            <motion.div id={"thumb"} ref={thumbRef} style={thumbStyle.final()}/>
-            <FakeContent id={0}/>
-            <FakeContent id={1}/>
-            <FakeContent id={2}/>
-            <FakeContent id={3}/>
-            <FakeContent id={4}/>
-            <FakeContent id={5}/>
-            <FakeContent id={6}/>
-            <FakeContent id={7}/>
-            <FakeContent id={8}/>
-            <FakeContent id={9}/>
-            <FakeContent id={10}/>
-            <FakeContent id={11}/>
-            <FakeContent id={12}/>
-            <FakeContent id={13}/>
-            <FakeContent id={14}/>
-            <FakeContent id={15}/>
-            <FakeContent id={16}/>
-            <FakeContent id={17}/>
-            <FakeContent id={18}/>
-            <FakeContent id={19}/>
-            <FakeContent id={0}/>
-            <FakeContent id={1}/>
-            <FakeContent id={2}/>
-            <FakeContent id={3}/>
-            <FakeContent id={4}/>
-            <FakeContent id={5}/>
-            <FakeContent id={6}/>
-            <FakeContent id={7}/>
-            <FakeContent id={8}/>
-            <FakeContent id={9}/>
-            <FakeContent id={10}/>
-            <FakeContent id={11}/>
-            <FakeContent id={12}/>
-            <FakeContent id={13}/>
-            <FakeContent id={14}/>
-            <FakeContent id={15}/>
-            <FakeContent id={16}/>
-            <FakeContent id={17}/>
-            <FakeContent id={18}/>
-            <FakeContent id={19}/>
-            <div id={"footer"} style={{width:`100%`, height:1}}/>
+        <motion.div id={"scroll-view-port-mask"} style={scrollMaskStyle}>
+            <motion.div 
+                id={"scroll-view-port"} 
+                className={"perforizon-scrollbar-viewport"}
+                ref={scrollViewPortRef}
+                style={scrollViewPortStyle.final()}
+            >   
+                <motion.div 
+                    id={"thumb"} 
+                    ref={thumbRef} 
+                    style={thumbStyle.final()}
+                    whileHover={"focus"}
+                    whileTap={"focus"}
+                    variants={variants}
+                />
+                <motion.div ref={trackRef} style={trackStyle.final()}></motion.div>
+                <LoremIpsum id={0}/>
+                <LoremIpsum id={1}/>
+                <LoremIpsum id={2}/>
+                <LoremIpsum id={3}/>
+                <LoremIpsum id={4}/>
+                <LoremIpsum id={5}/>
+                <LoremIpsum id={6}/>
+                <LoremIpsum id={7}/>
+                <LoremIpsum id={8}/>
+                <LoremIpsum id={9}/>
+                <LoremIpsum id={10}/>
+                <LoremIpsum id={11}/>
+                <LoremIpsum id={12}/>
+                <LoremIpsum id={13}/>
+                <LoremIpsum id={14}/>
+                <LoremIpsum id={15}/>
+                <LoremIpsum id={16}/>
+                <LoremIpsum id={17}/>
+                <LoremIpsum id={18}/>
+                <LoremIpsum id={19}/>
+                <LoremIpsum id={20}/>
+                <LoremIpsum id={21}/>
+                <LoremIpsum id={22}/>
+                <LoremIpsum id={23}/>
+                <LoremIpsum id={24}/>
+                <LoremIpsum id={25}/>
+                <LoremIpsum id={26}/>
+                <LoremIpsum id={27}/>
+                <LoremIpsum id={28}/>
+                <LoremIpsum id={29}/>
+                <LoremIpsum id={30}/>
+                <LoremIpsum id={31}/>
+                <LoremIpsum id={32}/>
+                <LoremIpsum id={33}/>
+                <LoremIpsum id={34}/>
+                <LoremIpsum id={35}/>
+                <LoremIpsum id={36}/>
+                <LoremIpsum id={37}/>
+                <LoremIpsum id={38}/>
+                <LoremIpsum id={39}/>
+                <LoremIpsum id={40}/>
+                <div id={"footer"} style={{width:`100%`, height:1}}/>
+            </motion.div>
         </motion.div>
     );
 }
+
