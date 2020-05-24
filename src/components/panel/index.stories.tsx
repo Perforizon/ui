@@ -28,7 +28,7 @@ const Container = (userProps : ContainerProps) => {
     }
     const injectStyle = (child : any, index : number) => {
         childConfig.user = child.props;
-        return React.cloneElement(child, childConfig.final());
+        return React.cloneElement(child, childConfig.finalize());
     }
 
     /**
@@ -53,9 +53,9 @@ const Container = (userProps : ContainerProps) => {
             overflowX: `hidden`
         }
     };
-
+    
     return (
-        <motion.div {...wrapperConfig.final()}>
+        <motion.div {...wrapperConfig.finalize()}>
             {Children.map(userProps.children, injectStyle)}
             <div id={"footer"} style={{height:1,width:1,flexShrink:0}}/>
         </motion.div>

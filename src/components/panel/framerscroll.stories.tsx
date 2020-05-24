@@ -1,21 +1,18 @@
 
 import React, { useRef, useEffect,useState, Ref, useLayoutEffect } from "react";
 import CSS from "csstype";
-import {merge} from "lodash-es";
 import {motion, MotionStyle, MotionValue, Variants, useMotionValue, useTransform} from "framer-motion";
-import {VEC3} from "@perforizon/math"
 import {Clamp} from "@perforizon/math";
-import "../../fonts/fira/stylesheet.scss";
 import "./scrollbar.scss";
 import "../../styles/no-select.scss";
-import config, { configPrimitive } from "../../utility/config";
+import config, { configPrimitive, useConfigRef } from "../../utility/config";
 
 export default {
     title: 'framer scroll'
 }
 
 interface LoremIpsumProps {
-    id : number
+    id ?: number
 }
 const LoremIpsum = (props : LoremIpsumProps) =>
 {
@@ -24,7 +21,8 @@ const LoremIpsum = (props : LoremIpsumProps) =>
         width: `100%`,
         marginTop: 5,
         marginBottom: 5,
-        backgroundColor: `rgb(255, 179, 189)`
+        backgroundColor: `rgb(255, 179, 189)`,
+        userSelect: `none`
     }
     return (
         <motion.div style={style}>
@@ -32,32 +30,48 @@ const LoremIpsum = (props : LoremIpsumProps) =>
         </motion.div>
     );
 }
-
-interface FramerScrollProps {
-    viewportStyle ?: MotionStyle;
-    contentWrapperStyle ?: MotionStyle;
-    trackStyle ?: MotionStyle;
-    thumbStyle ?: MotionStyle;
-
-    isThumbHeightDynamic ?: boolean;
-    scrollSensitivity ?: number;
-}
-
-/** transform with no rotation */
-class SimpleTransform {
-    x: number; y: number; z:number;
+class FramerScrollTransform {
+    x: string; y: string; z:string;
     scaleX : number; scaleY: number; scaleZ: number;
     constructor(){
-        this.x = 0;
-        this.y = 0;
-        this.z = 0;
+        this.x = `0px`;
+        this.y = `0px`;
+        this.z = `0px`;
         this.scaleX = 1;
         this.scaleY = 1;
         this.scaleZ = 1;
     }
-    matrix = () => {
-        return `translateX(${this.x}px) translateY(${this.y}px)`
+    cssString = () => {
+        return `
+        translateX(${this.x}) 
+        translateY(${this.y}) 
+        translateZ(${this.z})`
     }
+}
+interface FramerScrollVariant extends  CSS.Properties {
+    variantTransform ?: FramerScrollTransform;
+}
+interface FramerScrollVaraints {
+    default ?: CSS.Properties;
+    hover ?: CSS.Properties;
+    active ?: CSS.Properties;
+}
+interface FramerScrollProps {
+    viewportStyle ?: CSS.Properties;
+    contentWrapperStyle ?: CSS.Properties;
+    trackStyle ?: CSS.Properties;
+    thumbStyle ?: CSS.Properties;
+
+    viewportProps ?: React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>;
+    contentWrapperProps ?: React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>;
+    trackProps ?: React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>;
+    thumbProps ?:  React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>;
+
+    thumbVariants ?: FramerScrollVaraints;
+    trackVariants ?: FramerScrollVaraints;
+
+    isThumbHeightDynamic ?: boolean;
+    scrollSensitivity ?: number;
 }
 
 export const FramerScroll = (userProps : FramerScrollProps) => {
@@ -65,17 +79,17 @@ export const FramerScroll = (userProps : FramerScrollProps) => {
     const contentWrapperRef = useRef<HTMLDivElement>(null);
     const trackRef = useRef<HTMLDivElement>(null);
     const thumbRef = useRef<HTMLDivElement>(null);
-    const thumbTransformRef = useRef<SimpleTransform>(new SimpleTransform());
-    const trackTransformRef = useRef<SimpleTransform>(new SimpleTransform());
+    const thumbTransformRef = useRef(new FramerScrollTransform());
+    const trackTransformRef = useRef(new FramerScrollTransform());
 
-    const propsConfig = useRef(new config<FramerScrollProps>());
-    propsConfig.current.default = {
+    const props = useConfigRef<FramerScrollProps>();
+    props.current = {
         isThumbHeightDynamic : true,
         scrollSensitivity : 12,
         /**  Styles */
         viewportStyle : {
-            width: 256,
-            height: 256,
+            width: `256px`,
+            height: `256px`,
             backgroundColor: `rgb(200, 250, 220)`,
             pointerEvents: `auto`,
             userSelect: `auto`,
@@ -89,11 +103,11 @@ export const FramerScroll = (userProps : FramerScrollProps) => {
             height: `100%`,
             position: `absolute`,
             top: 0,
-            right: 0,
+            left: `100%`,
             zIndex: 1,
-            width: 20,
+            width: `20px`,
             transformOrigin: `top right`,
-            backgroundColor: `rgb(0, 0, 102)`,
+            backgroundColor: `rgba(0, 0, 102, .3)`,
             opacity: 0,
             transition: `transform .4s cubic-bezier(.33,.8,.42,.96) 0s,  opacity .2s ease 0s`
         },
@@ -102,47 +116,84 @@ export const FramerScroll = (userProps : FramerScrollProps) => {
             top: 0,
             right: 0,
             zIndex: 1,
-            width: 20,
-            height: 64,
+            width: `20px`,
+            height: `64px`,
             transformOrigin: `top right`,
             opacity: 0,
+            borderRadius: `5px`,
             backgroundColor: `rgb(180,180,255)`,
-            transition: `transform .4s cubic-bezier(.33,.8,.42,.96) 0s, opacity .2s ease 0s`
+            transition: `
+                transform .4s cubic-bezier(.33,.8,.42,.96) 0s,
+                opacity .2s ease 0s,
+                background-color .3s ease 0s
+                `,
+        },
+        thumbVariants : {
+            default: {
+                backgroundColor: `rgb(180,180,255)`,
+                opacity: 0
+            },
+            hover : {
+                opacity: 1,
+            },
+            active : {
+                backgroundColor: `rgb(240,240,255)`,
+            }
+        },
+        trackVariants : {
+
         }
     }
-    propsConfig.current.user = userProps;
-    propsConfig.current.finalize();
+    props.merge(userProps);
 
     const contentWrapperYRef = useRef(0);
+    const processScrollAnimationFrame = useRef(false);
     const wheelHandler = (event : WheelEvent ) => {
-        const viewportBoundingRect = viewportRef.current.getBoundingClientRect();
-        const thumbBoundingRect = thumbRef.current.getBoundingClientRect();
-        const viewportHeight = viewportBoundingRect.height;
-        const thumbHeight =  thumbBoundingRect.height;
-        const maxThumbDelta = viewportHeight-thumbHeight;
-        const maxScrollDelta = viewportRef.current.scrollHeight-viewportHeight
+        /**
+         * `requestAnimationFrame` prevents slight jitter
+         * using `processScrollAnimationFrame` to throttle prevents excess calls 
+         * which may result in less frames per second
+         * https://developer.mozilla.org/en-US/docs/Web/API/Document/scroll_event
+         */
+        if (!processScrollAnimationFrame.current)
+        {
+            requestAnimationFrame(
+                ()=>{        
+                    const viewportBoundingRect = viewportRef.current.getBoundingClientRect();
+                    const thumbBoundingRect = thumbRef.current.getBoundingClientRect();
+                    const viewportHeight = viewportBoundingRect.height;
+                    const thumbHeight =  thumbBoundingRect.height;
+                    const maxThumbDelta = viewportHeight-thumbHeight;
+                    const maxScrollDelta = viewportRef.current.scrollHeight-viewportHeight
 
-        contentWrapperYRef.current = Clamp(contentWrapperYRef.current+(-Math.sign(event.deltaY)*propsConfig.current.final.scrollSensitivity), 0, -maxScrollDelta)
-        thumbTransformRef.current.y = (-contentWrapperYRef.current/maxScrollDelta*maxThumbDelta);
-        contentWrapperRef.current.style.transform = `translateY(${contentWrapperYRef.current}px)`;
-        thumbRef.current.style.transform = thumbTransformRef.current.matrix();
+                    contentWrapperYRef.current = Clamp(contentWrapperYRef.current+(-Math.sign(event.deltaY)*props.current.scrollSensitivity), 0, -maxScrollDelta)
+                    thumbTransformRef.current.y = `${(-contentWrapperYRef.current/maxScrollDelta*maxThumbDelta)}px`;
+                    contentWrapperRef.current.style.transform = `translateY(${contentWrapperYRef.current}px)`;
+                    thumbRef.current.style.transform = thumbTransformRef.current.cssString();
+
+                    processScrollAnimationFrame.current = false;
+                }
+            );
+            processScrollAnimationFrame.current = true;
+        }
     }
 
     const isDragging = useRef(false);
-    const startDragPos = useRef(0);
     const dragStart = (y: number) => 
     {
         isDragging.current = true;
         viewportRef.current.style.pointerEvents = `none`;
         viewportRef.current.style.userSelect = `none`;
-        startDragPos.current = y;
+        Object.keys(props.current.thumbVariants.active).forEach((key) => {
+            thumbRef.current.style[key] = props.current.thumbVariants.active[key]
+        });
     }
     const dragEnd = () => 
     {
         isDragging.current = false;
-        viewportRef.current.style.pointerEvents = propsConfig.current.final.viewportStyle.pointerEvents.valueOf() as string;
-        viewportRef.current.style.userSelect = propsConfig.current.final.viewportStyle.userSelect.valueOf() as string;
-        thumbDefault();
+        viewportRef.current.style.pointerEvents = props.current.viewportStyle.pointerEvents.valueOf() as string;
+        viewportRef.current.style.userSelect = props.current.viewportStyle.userSelect.valueOf() as string;
+        viewportBlur();
     }
     const dragMove = (y: number) => {
         const viewportBoundingRect = viewportRef.current.getBoundingClientRect();
@@ -153,26 +204,32 @@ export const FramerScroll = (userProps : FramerScrollProps) => {
         const maxScrollDelta = viewportRef.current.scrollHeight-viewportHeight
 
         const yDelta = Clamp(y-thumbHeight/2, 0, maxThumbDelta);
-        thumbTransformRef.current.y = yDelta;
+        thumbTransformRef.current.y = `${yDelta}px`;
         contentWrapperYRef.current = -yDelta/maxThumbDelta * maxScrollDelta;
        
-        thumbRef.current.style.transform = thumbTransformRef.current.matrix();
+        thumbRef.current.style.transform = thumbTransformRef.current.cssString();
         contentWrapperRef.current.style.transform = `translateY(${contentWrapperYRef.current}px)`;
     }
-    const thumbDefault = () => {
-        thumbRef.current.style.opacity = `0`;
-        thumbRef.current.style.transform = thumbTransformRef.current.matrix();
+    const viewportBlur = () => {
+        Object.keys(props.current.thumbVariants.default).forEach((key) => {
+            thumbRef.current.style[key] = props.current.thumbVariants.default[key]
+        });
         trackRef.current.style.opacity = `0`;
-        trackRef.current.style.transform = trackTransformRef.current.matrix();
+        trackTransformRef.current.x = `0%`;
+        
+        thumbRef.current.style.transform = thumbTransformRef.current.cssString();
+        trackRef.current.style.transform = trackTransformRef.current.cssString();
     }
-    const thumbFocus = () => {
-        thumbRef.current.style.opacity = `1`;
-        thumbRef.current.style.transform = thumbTransformRef.current.matrix();
+    const viewportHover = () => {
+        Object.keys(props.current.thumbVariants.hover).forEach((key) => {
+            thumbRef.current.style[key] = props.current.thumbVariants.hover[key]
+        });
+        thumbRef.current.style.transform = thumbTransformRef.current.cssString();
         trackRef.current.style.opacity = `1`;
-        trackRef.current.style.transform = trackTransformRef.current.matrix();
+        trackTransformRef.current.x = `-100%`;
+        trackRef.current.style.transform = trackTransformRef.current.cssString();
     }
     const mouseDownHandler = (event : MouseEvent) => {
-        propsConfig.current.final.scrollSensitivity = 300;
         dragStart(event.clientY);
         dragMove(event.clientY);
     }
@@ -187,12 +244,12 @@ export const FramerScroll = (userProps : FramerScrollProps) => {
         }
     }
     const viewportHoverStartHandler = () => {
-        thumbFocus();
+        viewportHover();
     }
     const viewportHoverEndHandler = () => {
         if (!isDragging.current)
         {
-            thumbDefault();
+            viewportBlur();
         }
     }
     
@@ -209,7 +266,7 @@ export const FramerScroll = (userProps : FramerScrollProps) => {
 
     useEffect(()=>{
         trackRef.current.addEventListener(`mousedown`, mouseDownHandler, {passive:true});
-        thumbRef.current.addEventListener(`mousedown`, mouseDownHandler);
+        thumbRef.current.addEventListener(`mousedown`, mouseDownHandler, {passive:true});
         window.addEventListener(`mousemove`, thumbMouseMoveHandler);
         return () => {
             trackRef.current.removeEventListener(`mousedown`, mouseDownHandler);
@@ -219,7 +276,7 @@ export const FramerScroll = (userProps : FramerScrollProps) => {
     },[])
 
     useEffect(()=>{
-        viewportRef.current.addEventListener(`wheel`, wheelHandler);
+        viewportRef.current.addEventListener(`wheel`, wheelHandler, {passive:true});
         return () => {
             viewportRef.current.removeEventListener(`wheel`, wheelHandler);
         }
@@ -231,25 +288,26 @@ export const FramerScroll = (userProps : FramerScrollProps) => {
     },[])
 
     return (
-        <motion.div 
+        <div 
             id={"viewport"}
             ref={viewportRef}
-            style={propsConfig.current.final.viewportStyle}
+            style={props.current.viewportStyle}
         >
-            <motion.div
+            <div
                 id={"track"}
                 ref={trackRef}
-                style={propsConfig.current.final.trackStyle}
-            />
-            <motion.div
+                style={props.current.trackStyle}
+            >
+                <div
                 id={"thumb"}
                 ref={thumbRef}
-                style={propsConfig.current.final.thumbStyle}
-            />
-            <motion.div 
+                style={props.current.thumbStyle}
+                />
+            </div>
+            <div 
                 id={"content-wrapper"}
                 ref={contentWrapperRef}
-                style={propsConfig.current.final.contentWrapperStyle}
+                style={props.current.contentWrapperStyle}
             >
                 <LoremIpsum id={0}/>
                 <LoremIpsum id={1}/>
@@ -273,7 +331,7 @@ export const FramerScroll = (userProps : FramerScrollProps) => {
                 <LoremIpsum id={19}/>
                 <LoremIpsum id={20}/>
                 <div id={"footer"} style={{width:`100%`, height:1}}/>
-            </motion.div>
-        </motion.div>
+            </div>
+        </div>
     )
 }

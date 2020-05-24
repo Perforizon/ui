@@ -12,25 +12,24 @@ export default class config<T> {
         return this.final;
     };
 }
-export class configRef<T> {
-  
-    private _default : MutableRefObject<T>;
-    private _user : MutableRefObject<T>;
-    private _override : MutableRefObject<T>;
-    private _final : MutableRefObject<T>;
+export class MutableConfigRef<T> {
+    private _current : MutableRefObject<T>;
     constructor() {
-        this._default = useRef<T>();
-        this._user = useRef<T>();
-        this._override = useRef<T>();
-        this._final = useRef<T>();
+        this._current = useRef<T>();
     }
-    finalize = () => {
-        this._final.current = merge({}, this.default, this.user, this.override);
+    merge(val : T)
+    {
+        merge({}, this._current.current, val);
     }
-    get default() {return this._default.current}
-    get user() {return this._user.current}
-    get override() {return this._default.current}
-    get final() {return this._final.current}
+    get current() {
+        return this._current.current;
+    }
+    set current(value : T) {
+        this._current.current = value;
+    }
+}
+export function useConfigRef<T>() {
+    return new MutableConfigRef<T>();
 }
 export class configPrimitive<T> {
     default : T;
